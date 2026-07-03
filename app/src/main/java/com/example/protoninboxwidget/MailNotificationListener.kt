@@ -24,6 +24,61 @@ class MailNotificationListener : NotificationListenerService() {
         }
     }
 
+    override fun onNotificationRemoved(
+        sbn: StatusBarNotification,
+        rankingMap: RankingMap?,
+        reason: Int
+    ) {
+        if (sbn.packageName != PROTON_PACKAGE) return
+        // Only remove when Proton itself cancelled the notification,
+        // which happens when the mail is read or deleted. A user swiping
+        // the notification away (REASON_CANCEL) keeps the widget row.
+        if (reason != REASON_APP_CANCEL && reason != REASON_APP_CANCEL_ALL) return
+
+        val (ids, keys) = extractIdentity(sbn)
+        if (ids.isNotEmpty() || keys.isNotEmpty()) {
+            DebugLog.add(applicationContext, "Mail read/deleted → removing ${keys.size} row(s)")
+            MailStore.removeMatching(applicationContext, ids, keys)
+        }
+    }
+
+    /** Rebuilds the same ids/keys that handle() produced for this notification. */
+    private fun extractIdentity(sbn: StatusBarNotification): Pair<Set<String>, Set<Pair<String, String>>> {
+        val n = sbn.notification ?: return emptySet<String>() to emptySet()
+        val extras = n.extras
+        val ids = mutableSetOf<String>()
+        val keys = mutableSetOf<Pair<String, String>>()
+
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim()
+        val text = (extras.getCharSequence(Notification.EXTRA_TEXT)
+            ?: extras.getCharSequence(Notification.EXTRA_BIG_TEXT))?.toString()?.trim()
+
+        val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
+        messages?.forEach { p ->
+            val b = p as? Bundle ?: return@forEach
+            val sender = (b.getCharSequence("sender_person")?.toString()
+                ?: b.getCharSequence("sender")?.toString())?.trim()
+                ?: title ?: "Proton Mail"
+            val msgText = b.getCharSequence("text")?.toString()?.trim() ?: return@forEach
+            ids.add((sender + msgText + sbn.postTime).hashCode().toString())
+            keys.add(sender to msgText)
+        }
+
+        extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)?.forEach { line ->
+            val s2 = line?.toString()?.trim() ?: return@forEach
+            if (s2.isNotBlank()) {
+                ids.add((s2 + sbn.postTime).hashCode().toString())
+                keys.add((title ?: "Proton Mail") to s2)
+            }
+        }
+
+        if (!title.isNullOrBlank() && !text.isNullOrBlank()) {
+            ids.add((title + text + sbn.postTime).hashCode().toString())
+            keys.add(title to text)
+        }
+        return ids to keys
+    }
+
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         if (sbn.packageName != PROTON_PACKAGE) return
         handle(sbn)

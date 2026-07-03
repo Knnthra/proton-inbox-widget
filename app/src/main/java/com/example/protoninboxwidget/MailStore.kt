@@ -59,6 +59,18 @@ object MailStore {
         }
     }
 
+    fun removeMatching(context: Context, ids: Set<String>, keys: Set<Pair<String, String>>) {
+        val items = getAll(context)
+        val remaining = items.filterNot {
+            it.id.isNotBlank() && ids.contains(it.id) ||
+            keys.contains(it.sender to it.subject)
+        }
+        if (remaining.size != items.size) {
+            save(context, remaining)
+            notifyWidgets(context)
+        }
+    }
+
     fun clear(context: Context) {
         save(context, emptyList())
         notifyWidgets(context)
