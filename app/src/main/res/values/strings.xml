@@ -9,4 +9,9 @@
     <string name="status_disabled">⚠️ Notification access not granted</string>
     <string name="btn_grant_access">Grant notification access</string>
     <string name="btn_manage_access">Manage access</string>
+    <string name="btn_test">Add test mail to widget</string>
+    <string name="log_title">Debug log</string>
+    <string name="btn_refresh">Refresh</string>
+    <string name="btn_clear">Clear log</string>
+    <string name="log_empty">No log entries yet. Send yourself a test email, then tap Refresh.</string>
 </resources>

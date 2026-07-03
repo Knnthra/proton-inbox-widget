@@ -16,6 +16,20 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_grant).setOnClickListener {
             startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
+
+        findViewById<Button>(R.id.btn_test).setOnClickListener {
+            MailStore.add(
+                this,
+                MailItem("Test sender", "If you can see this on the widget, the widget works!", System.currentTimeMillis())
+            )
+            refreshLog()
+        }
+
+        findViewById<Button>(R.id.btn_refresh_log).setOnClickListener { refreshLog() }
+        findViewById<Button>(R.id.btn_clear_log).setOnClickListener {
+            DebugLog.clear(this)
+            refreshLog()
+        }
     }
 
     override fun onResume() {
@@ -34,5 +48,13 @@ class MainActivity : AppCompatActivity() {
         } else {
             getString(R.string.btn_grant_access)
         }
+        refreshLog()
+    }
+
+    private fun refreshLog() {
+        val lines = DebugLog.getAll(this)
+        findViewById<TextView>(R.id.debug_log).text =
+            if (lines.isEmpty()) getString(R.string.log_empty)
+            else lines.joinToString("\n\n")
     }
 }
