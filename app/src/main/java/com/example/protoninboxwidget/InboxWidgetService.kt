@@ -42,7 +42,10 @@ class InboxRemoteViewsFactory(
                 )
             )
             // Fill-in intent so taps fire the provider's template
-            setOnClickFillInIntent(R.id.item_root, Intent())
+            setOnClickFillInIntent(
+                R.id.item_root,
+                Intent().putExtra("item_id", item.id)
+            )
         }
     }
 

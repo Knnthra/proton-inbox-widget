@@ -9,7 +9,8 @@ import org.json.JSONObject
 data class MailItem(
     val sender: String,
     val subject: String,
-    val timestamp: Long
+    val timestamp: Long,
+    val id: String = ""
 )
 
 /**
@@ -49,7 +50,8 @@ object MailStore {
                 MailItem(
                     o.optString("sender"),
                     o.optString("subject"),
-                    o.optLong("timestamp")
+                    o.optLong("timestamp"),
+                    o.optString("id")
                 )
             }
         } catch (e: Exception) {
@@ -69,6 +71,7 @@ object MailStore {
                 put("sender", it.sender)
                 put("subject", it.subject)
                 put("timestamp", it.timestamp)
+                put("id", it.id)
             })
         }
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

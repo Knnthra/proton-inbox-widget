@@ -45,6 +45,13 @@ class MailNotificationListener : NotificationListenerService() {
         )
 
         var added = 0
+        val contentIntent = n.contentIntent
+
+        fun newId(seed: String): String {
+            val id = (seed + sbn.postTime).hashCode().toString()
+            if (contentIntent != null) IntentCache.put(id, contentIntent)
+            return id
+        }
 
         // 1) MessagingStyle: individual messages in EXTRA_MESSAGES
         val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
@@ -56,7 +63,8 @@ class MailNotificationListener : NotificationListenerService() {
                 val msgText = b.getCharSequence("text")?.toString()?.trim()
                 val time = b.getLong("time", sbn.postTime)
                 if (!msgText.isNullOrBlank()) {
-                    MailStore.add(ctx, MailItem(sender ?: (title ?: "Proton Mail"), msgText, time))
+                    val snd = sender ?: (title ?: "Proton Mail")
+                    MailStore.add(ctx, MailItem(snd, msgText, time, newId(snd + msgText)))
                     added++
                 }
             }
@@ -67,7 +75,7 @@ class MailNotificationListener : NotificationListenerService() {
             extras.getCharSequenceArray(Notification.EXTRA_TEXT_LINES)?.forEach { line ->
                 val s = line?.toString()?.trim() ?: return@forEach
                 if (s.isNotBlank()) {
-                    MailStore.add(ctx, MailItem(title ?: "Proton Mail", s, sbn.postTime))
+                    MailStore.add(ctx, MailItem(title ?: "Proton Mail", s, sbn.postTime, newId(s)))
                     added++
                 }
             }
@@ -80,7 +88,7 @@ class MailNotificationListener : NotificationListenerService() {
                 lower.contains("logged out") || lower.contains("new message", ignoreCase = false) &&
                 Regex("^\\d+ new message").containsMatchIn(lower)
             if (!service) {
-                MailStore.add(ctx, MailItem(title, text, sbn.postTime))
+                MailStore.add(ctx, MailItem(title, text, sbn.postTime, newId(title + text)))
                 added++
             } else {
                 DebugLog.add(ctx, "Skipped as service/summary text")

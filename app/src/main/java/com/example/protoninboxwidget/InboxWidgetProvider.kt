@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.widget.RemoteViews
 
 class InboxWidgetProvider : AppWidgetProvider() {
@@ -84,14 +85,31 @@ class InboxWidgetProvider : AppWidgetProvider() {
         when (intent.action) {
             ACTION_CLEAR -> MailStore.clear(context)
             ACTION_ITEM_CLICK -> {
-                // Open the Proton Mail app (deep-linking to a specific mail
-                // isn't possible from outside the app)
-                context.packageManager
-                    .getLaunchIntentForPackage(MailNotificationListener.PROTON_PACKAGE)
-                    ?.let {
-                        it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        context.startActivity(it)
+                val id = intent.getStringExtra("item_id")
+                val pi = id?.let { IntentCache.get(it) }
+                var opened = false
+                if (pi != null) {
+                    try {
+                        val opts = if (Build.VERSION.SDK_INT >= 34) {
+                            android.app.ActivityOptions.makeBasic()
+                                .setPendingIntentBackgroundActivityStartMode(
+                                    android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                                ).toBundle()
+                        } else null
+                        pi.send(context, 0, null, null, null, null, opts)
+                        opened = true
+                    } catch (e: Exception) {
+                        // Intent was cancelled or expired — fall through
                     }
+                }
+                if (!opened) {
+                    context.packageManager
+                        .getLaunchIntentForPackage(MailNotificationListener.PROTON_PACKAGE)
+                        ?.let {
+                            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(it)
+                        }
+                }
             }
         }
     }
