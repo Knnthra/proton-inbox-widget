@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Proton Inbox Widget</string>
+    <string name="widget_description">Shows recent Proton Mail messages captured from notifications</string>
+    <string name="clear">Clear</string>
+    <string name="empty_message">No new mail yet.\nNew Proton Mail notifications will appear here.</string>
+    <string name="explainer">This app reads Proton Mail notifications and shows them in a home screen widget. It only listens to Proton Mail — nothing else — and nothing ever leaves your device.\n\n1. Tap the button below and enable access for Proton Inbox Widget.\n2. Long-press your home screen → Widgets → Proton Inbox Widget.</string>
+    <string name="status_enabled">✅ Notification access enabled</string>
+    <string name="status_disabled">⚠️ Notification access not granted</string>
+    <string name="btn_grant_access">Grant notification access</string>
+    <string name="btn_manage_access">Manage access</string>
+</resources>
