@@ -30,9 +30,10 @@ class MailNotificationListener : NotificationListenerService() {
         reason: Int
     ) {
         if (sbn.packageName != PROTON_PACKAGE) return
+        DebugLog.add(applicationContext, "Notif removed, reason=$reason title='${sbn.notification?.extras?.getCharSequence(Notification.EXTRA_TITLE) ?: ""}'")
         // Only remove when Proton itself cancelled the notification,
         // which happens when the mail is read or deleted. A user swiping
-        // the notification away (REASON_CANCEL) keeps the widget row.
+        // the notification away (REASON_CANCEL = 2) keeps the widget row.
         if (reason != REASON_APP_CANCEL && reason != REASON_APP_CANCEL_ALL) return
 
         val (ids, keys) = extractIdentity(sbn)
